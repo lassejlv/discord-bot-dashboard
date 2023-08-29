@@ -2,7 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 
-const apiUrl = "https://discord.com/api/v9";
+const apiUrl = "https://discord.com/api/v10";
 
 // Gets users guilds from discord api
 export async function getUserGuilds(email) {
@@ -77,4 +77,43 @@ export async function getUserGuilds(email) {
       return error.message;
     }
   }
+}
+
+// Get guild
+export async function getGuild(guildId) {
+  const prisma = new PrismaClient();
+  const guild = await prisma.guild.findUnique({
+    where: { guildId: guildId },
+  });
+
+  // fetch discord api to get guild info
+  const guildResponse = await fetch(`${apiUrl}/guilds/${guildId}`, {
+    headers: {
+      Authorization: `Bot ${process.env.DISCORD_CLIENT_TOKEN}`,
+    },
+  });
+
+  if (!guildResponse.ok) {
+    console.log(guildResponse);
+    return null;
+  } else {
+    const guildInfo = await guildResponse.json();
+    console.log("Guild info", guildInfo);
+    return guildInfo;
+  }
+}
+
+// get user from database
+export async function getUser(userEmail) {
+  const prisma = new PrismaClient();
+
+  if (typeof userEmail !== "string") return null;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: userEmail,
+    },
+  });
+
+  return user;
 }

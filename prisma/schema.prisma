@@ -22,3 +22,8 @@ model User {
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
 }
+
+model Guild {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  guildId String @unique
+}
