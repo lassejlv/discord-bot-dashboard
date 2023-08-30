@@ -3,7 +3,8 @@ import React from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { getUserGuilds } from "./actions";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
+import { Spinner } from "@nextui-org/react";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -30,15 +31,20 @@ export default function Home() {
 
   return (
     <>
+      <h1 className="text-4xl font-bold text-center mt-7">
+        Select a server to manage
+      </h1>
+
       {session ? (
         <>
-          Logged in as {session?.user?.email} <br />
           {loading ? (
-            <>Loading...</>
+            <div className="flex justify-center items-center h-[45vh]">
+              <Spinner color="primary" size="lg" />
+            </div>
           ) : (
             <>
               <div
-                className="grid gap-4 m-3"
+                className="grid gap-4 m-10"
                 style={{
                   gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
                 }}
@@ -47,9 +53,7 @@ export default function Home() {
                   <>
                     <article
                       onClick={() => {
-                        guild?.inGuild
-                          ? router.push(`/dashboard/${guild.id}`)
-                          : router.push(`/dashboard/${guild.id}/invite`);
+                        router.push(`/dashboard/${guild.id}`);
                       }}
                       key={guild.id}
                       className="overflow-hidden rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110"
@@ -74,10 +78,7 @@ export default function Home() {
           )}
         </>
       ) : (
-        <>
-          Not signed in <br />
-          <button onClick={() => signIn("discord")}>Sign in</button>
-        </>
+        <></>
       )}
     </>
   );

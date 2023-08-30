@@ -10,6 +10,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+// Premium Types
+enum PremiumType {
+  FREE
+  PRO
+  ULTRA
+}
+
 model User {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   discordId    String   @unique
@@ -26,4 +34,8 @@ model User {
 model Guild {
   id      String @id @default(auto()) @map("_id") @db.ObjectId
   guildId String @unique
+  ownerId String?
+  subscriptionType PremiumType @default(FREE)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
