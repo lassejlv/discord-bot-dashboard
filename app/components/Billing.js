@@ -17,11 +17,16 @@ import {
 import React from "react";
 import StarIcon from "./icons/star";
 import SadIcon from "./icons/sad";
+import { createBillingSession, createCheckoutSession } from "../actions";
+import { useSession } from "next-auth/react";
 
 export default function Billing({ guild }) {
+  const { data: session } = useSession();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [buttonLoading, setButtonLoading] = React.useState(false);
   const [plan, setPlan] = React.useState("PRO");
+
+  console.log("GUILDID", guild?.guildId);
 
   return (
     <div>
@@ -46,6 +51,27 @@ export default function Billing({ guild }) {
                 >
                   Upgrade your plan
                 </Button>
+
+                <Button
+                  color="success"
+                  variant="light"
+                  className="mt-4 rounded-md font-bold ml-2"
+                  isLoading={buttonLoading}
+                  onPress={async () => {
+                    setButtonLoading(true);
+
+                    try {
+                      const billingPortal = await createBillingSession(
+                        session?.user.email
+                      );
+                    } catch (error) {
+                      setButtonLoading(false);
+                      alert(error.message);
+                    }
+                  }}
+                >
+                  Manage Billing
+                </Button>
               </div>
 
               {/* modal */}
@@ -58,36 +84,17 @@ export default function Billing({ guild }) {
                   {(onClose) => (
                     <>
                       <ModalHeader className="flex flex-col gap-1">
-                        Choose your plan
+                        Upgrade your plan
                       </ModalHeader>
                       <ModalBody>
-                        <Select
-                          variant="faded"
-                          label="Select your plan"
-                          onChange={(e) => {
-                            if (e.target.value === "") {
-                              setPlan("PRO");
-                            }
-                            setPlan(e.target.value);
-                          }}
-                          isDisabled={buttonLoading}
-                        >
-                          <SelectItem key={"PRO"} value={"PRO"}>
-                            Pro
-                          </SelectItem>
-                          <SelectItem key={"Ultra"} value={"ULTRA"}>
-                            Ultra
-                          </SelectItem>
-                        </Select>
-
                         {/* slected plan */}
-                        <div className="flex flex-col gap-2 mt-4 bg-gradient-to-r from-green-800 to-green-900 rounded-sm p-2">
+                        <div className="flex flex-col gap-2 bg-gradient-to-r from-green-800 to-green-900 rounded-sm p-2">
                           <div className="flex flex-col gap-1">
                             <h3 className="text-white font-semibold text-md">
                               {plan}
                             </h3>
                             <p className="text-gray-300 text-sm">
-                              {plan === "PRO" ? "$2.99/month" : "$4.99/month"}
+                              4.99 USD / month
                             </p>
                           </div>
                         </div>
@@ -108,6 +115,16 @@ export default function Billing({ guild }) {
                           endContent={<StarIcon />}
                           onPress={async () => {
                             setButtonLoading(true);
+
+                            // create checkout session
+                            const createSession = await createCheckoutSession(
+                              session?.user.email,
+                              guild?.guildId,
+                              plan
+                            );
+
+                            // redirect to checkout
+                            window.location.href = createSession.url;
                           }}
                           isLoading={buttonLoading}
                         >

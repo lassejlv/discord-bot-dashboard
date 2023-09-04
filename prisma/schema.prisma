@@ -10,7 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 // Premium Types
 enum PremiumType {
   FREE
@@ -19,23 +18,24 @@ enum PremiumType {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  discordId    String   @unique
-  username     String
-  avatar       String?
-  email        String   @unique
-  accessToken  String?
-  refreshToken String?
-  guildIds     String[]
-  updatedAt    DateTime @updatedAt
-  createdAt    DateTime @default(now())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  discordId        String   @unique
+  username         String
+  avatar           String?
+  email            String   @unique
+  accessToken      String?
+  refreshToken     String?
+  stripeCustomerId String?
+  guildIds         String[]
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
 }
 
 model Guild {
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
-  guildId String @unique
-  ownerId String?
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  guildId          String      @unique
+  ownerId          String?
   subscriptionType PremiumType @default(FREE)
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime    @default(now())
 }

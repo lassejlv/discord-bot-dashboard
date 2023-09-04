@@ -1,6 +1,9 @@
 "use server";
 
 import { PrismaClient } from "@prisma/client";
+import { redirect } from "next/navigation";
+import stripe from "stripe";
+const stripeClient = stripe(process.env.STRIPE_SECRET);
 
 const apiUrl = "https://discord.com/api/v10";
 
@@ -116,4 +119,42 @@ export async function getUser(userEmail) {
   });
 
   return user;
+}
+
+// create stripe subscription checkout
+export async function createCheckoutSession(email, guildId, plan) {
+  const prisma = new PrismaClient();
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  // create stripe checkout session
+  const session = await stripeClient.checkout.sessions.create({
+    payment_method_types: ["card"],
+    allow_promotion_codes: true,
+    line_items: [
+      {
+        price: process.env.STRIPE_PRO_ID,
+        quantity: 1,
+      },
+    ],
+    mode: "subscription",
+    success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_URL}/dashboard/${guildId}/billing?canceled=true`,
+    customer_email: email,
+    client_reference_id: guildId,
+  });
+
+  return session;
+}
+
+export async function createBillingSession(email) {
+  // Create a billing portal session
+  const session = await stripeClient.billingPortal.sessions.create({
+    customer: email,
+    return_url: `${process.env.NEXT_PUBLIC_URL}/dashboard`,
+  });
+
+  console.log("Billing session", session);
+  return session;
 }
